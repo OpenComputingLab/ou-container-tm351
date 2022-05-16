@@ -1,0 +1,96 @@
+module:
+  code: TM351
+  presentation: 22J
+
+type: jupyter-notebook
+
+base: python:3.10-slim-bullseye
+
+sources:
+  apt:
+    - name:  mongodb
+      key:   https://www.mongodb.org/static/pgp/server-5.0.asc
+      deb:   "deb http://repo.mongodb.org/apt/debian buster/mongodb-org/5.0 main"
+
+content:
+  # Python package requirements
+  - source: ./requirements.txt
+    target: /tmp/requirements.txt
+    overwrite: always
+  # Bundled notebooks
+  - source: content
+    target: content
+    overwrite: never
+  # Database service and initialisation scripts
+  - source: init_db
+    target: /var/setup/init_db_seed
+    overwrite: always
+  # Jupyter config
+  - source: .jupyter
+    target: .jupyter
+    overwrite: never
+  # Classic notebook branding
+  - source: .jupyter/custom
+    target: .jupyter/custom
+    overwrite: always
+packages:
+  apt:
+   - wget
+   - openjdk-11-jre # OpenRefine runtime
+   - lsof
+   - libpq-dev
+   - gcc # Should we provide pre-built wheels?
+   - sudo
+   - postgresql
+   - mongodb-org
+   - bzip2
+
+scripts:
+  build:
+  - commands: |
+      pip install -r /tmp/requirements.txt
+
+  - commands: |
+      OPENREFINE_VERSION=3.4.1
+      OPENREFINE_PATH=/var/openrefine
+      wget -q -O openrefine-${OPENREFINE_VERSION}.tar.gz https://github.com/OpenRefine/OpenRefine/releases/download/${OPENREFINE_VERSION}/openrefine-linux-${OPENREFINE_VERSION}.tar.gz
+      tar xzf openrefine-${OPENREFINE_VERSION}.tar.gz
+      mv openrefine-${OPENREFINE_VERSION} $OPENREFINE_PATH
+      rm openrefine-${OPENREFINE_VERSION}.tar.gz
+
+  - commands: |
+      PG_DB_DIR=/var/db/data/postgres
+      PG_VERSION=13
+      mkdir -p $PG_DB_DIR
+      sed -e "s/[#]\?listen_addresses = .*/listen_addresses = '*'/g" -i "/etc/postgresql/$PG_VERSION/main/postgresql.conf"
+      PGDATA=/var/lib/postgresql/$PG_VERSION/main
+      mkdir -p /var/setup
+      chmod +x /var/setup/init_db_seed/postgres/init_db.sh
+      POSTGRES_USER=postgres
+      POSTGRES_PASSWORD=postgres
+      POSTGRES_DB=tm351db
+      service postgresql restart
+      runuser -u postgres -- psql postgres -f /var/setup/init_db_seed/postgres/init_db.sql
+      runuser -u postgres -- /var/setup/init_db_seed/postgres/init_db.sh
+
+  - commands: |
+      MONGO_DB_PATH=/var/db/data/mongo
+      mkdir -p ${MONGO_DB_PATH}
+      mkdir -p /var/setup/tmpdatafiles
+      # service definition files in /lib/systemd/system/
+      mv /var/setup/init_db_seed/mongo/init.d/mongod.conf /etc/mongod.conf
+      mv /var/setup/init_db_seed/mongo/init.d/mongod /etc/init.d/mongod
+      chmod ugo+rx /etc/init.d/mongod
+
+      tar xvjf /var/setup/init_db_seed/mongo/small_accidents.tar.bz2 -C /var/setup/tmpdatafiles
+      mongod --fork --logpath /var/log/mongosetup --dbpath ${MONGO_DB_PATH}
+      mongorestore --drop --db accidents /var/setup/tmpdatafiles/small_accidents
+      rm -rf /var/setup/tmpdatafiles && rm -rf /var/setup/init_db
+  
+  startup:
+  - commands: |
+      mkdir -p openrefine
+
+services:
+  - postgresql
+  - mongod

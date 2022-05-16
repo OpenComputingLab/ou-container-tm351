@@ -1,0 +1,8 @@
+
+    
+ou ALL=NOPASSWD: /usr/sbin/service postgresql start
+ou ALL=NOPASSWD: /usr/sbin/service postgresql stop
+    
+ou ALL=NOPASSWD: /usr/sbin/service mongod start
+ou ALL=NOPASSWD: /usr/sbin/service mongod stop
+    
