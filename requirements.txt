@@ -32,6 +32,7 @@ tqdm
 # File management
 jupyterlab-filesystem-access
 jupyter-archive
+jupyterlab-git
 
 # Authoring support
 jupyterlab-spellchecker
