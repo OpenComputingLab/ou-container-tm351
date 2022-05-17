@@ -1,6 +1,7 @@
 module:
   code: TM351
   presentation: 22J
+# This gives a home directory of: /home/ou/TM351-22J
 
 type: jupyter-notebook
 
@@ -45,6 +46,8 @@ packages:
    - mongodb-org
    - bzip2
    - git
+   - file
+   - graphviz
 
 scripts:
   build:
