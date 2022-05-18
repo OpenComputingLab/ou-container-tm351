@@ -11,4 +11,4 @@ ou-container-builder --tag ousefulcoursecontainers/ou-tm351
 ```
 
 
-A manual docker action can be used to build the container and push it to: `ousefuldemos/oucb-tm351-test:latest`
+A manual Github Action can be used to build the container and push it to: `ousefuldemos/oucb-tm351-test:latest`
