@@ -34,6 +34,11 @@ content:
   - source: .jupyter/custom
     target: .jupyter/custom
     overwrite: always
+
+environment:
+  - name:   PATH
+    value: /var/openrefine:${PATH}
+
 packages:
   apt:
    - wget
