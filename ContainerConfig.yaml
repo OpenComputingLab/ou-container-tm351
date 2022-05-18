@@ -91,6 +91,9 @@ scripts:
       mongorestore --drop --db accidents /var/setup/tmpdatafiles/small_accidents
       rm -rf /var/setup/tmpdatafiles && rm -rf /var/setup/init_db
   
+  - commands: |
+      pip install --upgrade https://github.com/ouseful-PR/nbval/archive/refs/heads/master.zip
+
   startup:
   - commands: |
       mkdir -p openrefine
