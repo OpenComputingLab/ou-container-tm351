@@ -25,6 +25,7 @@ stickyland
 
 # Renderers
 jupyterlab-geojson>=3
+jupyterlab-markup
 jupyterlab-myst
 
 # Resource monitoring / tracking
